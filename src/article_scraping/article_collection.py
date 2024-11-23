@@ -111,7 +111,7 @@ class ArticleCollector():
         else:
             print("Failed to pull a valid response from the NewsAPI. Check inputs")
 
-    def make_article_df(self):
+    def make_article_df(self, save=True):
         '''Converts all the article information stored in the class instance and converts to a DataFrame for returning'''
         df = pd.DataFrame({
             'url':self.urls,
@@ -121,8 +121,27 @@ class ArticleCollector():
             'source':self.sources
         })
 
-        self.df = df
-        return df
+        if save:
+            # Check for an existient df
+            try:
+                # Load df
+                pre_df = pd.read_csv('data/corpus_info.csv')
+
+                # Combine the previously created df and the new info
+                new_df = pd.concat([pre_df, df], axis=0)
+
+                # Save the newly created df
+                with open('data/corpus_info.csv', 'wb') as fpath:
+                    new_df.to_csv(fpath, index=False)
+            
+            except FileNotFoundError: # No already saved file
+                # Save the newly created df
+                new_df = df
+                with open('data/corpus_info.csv', 'wb') as fpath:
+                    new_df.to_csv(fpath, index=False)
+
+        self.df = new_df
+        return new_df
          
 
 
@@ -345,7 +364,7 @@ class ArticleScraper():
         
     def scrape_ap_article(self, url):
         '''scrapes article text from apnews.com'''
-         # Get the HTML Soup from the url via a GET request
+        # Get the HTML Soup from the url via a GET request
         soup = self._make_soup(url)
 
         # Filter down to just the article body
@@ -395,6 +414,33 @@ class ArticleScraper():
         full_article_text = '\n'.join([''.join(para.text) for para in paragraphs])
 
         return full_article_text
+    
+    def scrape_aljazeera_article(self, url):
+        '''scrapes article text from aljazeera.com'''
+        # Get the HTML Soup from the url via a GET request
+        soup = self._make_soup(url)
+
+        # Filter down to just the article body
+        article_body = soup.find('main', {'id':'main-content-area'})
+
+        if article_body:
+            # Segment by paragraph
+            paragraphs = article_body.find_all('p')
+
+            # Rebuild the article from the paragraphs
+            full_article_text = '\n'.join([''.join(para.text) for para in paragraphs])
+
+            return full_article_text
+        
+        else:
+            print("The given URL is not connecting to an article. Double check the URL and inspect the page if necessary.")
+            print(url)
+            return None
+
+
+
+
+
         
             
         
