@@ -18,7 +18,7 @@ class NewsScraper():
     def __init__(self):
         pass
 
-    def _make_soup(url):
+    def _make_soup(self, url):
         # Get the HTML Soup from the url via a GET request
         response = requests.get(url)
         html_content = response.text
@@ -30,7 +30,7 @@ class NewsScraper():
     def scrape_fox_article(self, url):
         '''Scrapes article text from foxnews.com given a url'''
     
-        soup = _make_soup(url)
+        soup = self._make_soup(url)
         
         # Filter down to just the article body
         article_body = soup.find('div', {'class':'article-body'})
@@ -65,7 +65,7 @@ class NewsScraper():
     def scrape_CNN_article(self, url):
         '''Scrapes article text from cnn.com given a url'''
 
-        soup = _make_soup(url)
+        soup = self._make_soup(url)
 
         # Filter down to just the article body
         article_body = soup.find('div', {'class':'article__content-container'})
@@ -150,7 +150,7 @@ class NewsScraper():
 
     def scrape_breitbart(self, url):
         '''Scrapes article text from breitbart.com'''
-        soup = _make_soup(url)
+        soup = self._make_soup(url)
 
         # Filter down to just the article body
         article_body = soup.find('div', {'class':'entry-content'})    
@@ -171,7 +171,7 @@ class NewsScraper():
         
     def scrape_bbc_article(self, url):
         '''scrapes article text from bbc.com'''
-        soup = _make_soup(url)
+        soup = self._make_soup(url)
 
         # Filter down to just the article body
         article_body = soup.find('article')
@@ -232,7 +232,7 @@ class NewsScraper():
     def scrape_ap_article(self, url):
         '''scrapes article text from apnews.com'''
          # Get the HTML Soup from the url via a GET request
-        soup = _make_soup(url)
+        soup = self._make_soup(url)
 
         # Filter down to just the article body
         article_body = soup.find('div', {'class':'RichTextStoryBody RichTextBody'})
