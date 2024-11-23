@@ -90,6 +90,7 @@ class NewsScraper():
 
     
     def scrape_washingtonpost_article(self, url):
+        '''Scrapes article text from Washingtonpost.com using Selenium to log in'''
         try: # Fails if login is required
             # Get the HTML Soup from the url via a GET request, including a timeout
             response = requests.get(url, timeout=3)
@@ -148,6 +149,7 @@ class NewsScraper():
             return None
 
     def scrape_breitbart(self, url):
+        '''Scrapes article text from breitbart.com'''
         soup = _make_soup(url)
 
         # Filter down to just the article body
@@ -168,6 +170,7 @@ class NewsScraper():
             return None
         
     def scrape_bbc_article(self, url):
+        '''scrapes article text from bbc.com'''
         soup = _make_soup(url)
 
         # Filter down to just the article body
@@ -220,6 +223,65 @@ class NewsScraper():
             full_article_text = '\n'.join([''.join(para.text) for para in paragraphs])
 
             return full_article_text
+        
+        else:
+            print("The given URL is not connecting to an article. Double check the URL and inspect the page if necessary.")
+            print(url)
+            return None
+        
+    def scrape_ap_article(self, url):
+        '''scrapes article text from apnews.com'''
+         # Get the HTML Soup from the url via a GET request
+        soup = _make_soup(url)
+
+        # Filter down to just the article body
+        article_body = soup.find('div', {'class':'RichTextStoryBody RichTextBody'})
+
+        if article_body:
+            # Segment by paragraph
+            paragraphs = article_body.find_all('p')
+
+            # Rebuild the article from the paragraphs
+            full_article_text = '\n'.join([''.join(para.text) for para in paragraphs])
+
+            return full_article_text
+        
+        else:
+            print("The given URL is not connecting to an article. Double check the URL and inspect the page if necessary.")
+            print(url)
+            return None
+        
+    def scrape_politico_article(self, url):
+        '''scrapes article text from politico using selenium to accept privacy agreement'''
+        # Page loads with JS, so use selenium again
+        driver = webdriver.Chrome()
+        driver.get(url)
+
+        # click the agree to privacy terms button if it appears
+        try:
+            WebDriverWait(driver, 4).until(
+                EC.element_to_be_clickable((By.XPATH, "//*[@title='Agree']"))
+            ).click()
+        except:
+            WebDriverWait(driver, 4).until(
+                EC.element_to_be_clickable((By.XPATH, "//*[@class='sidebar-grid__container']"))
+            )
+
+        # Collect the HTML
+        html_content = driver.page_source
+        
+        # And convert to soup as usual
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        # Segment by paragraph. We do not filter to the article body, as it is split into multiple
+        # pieces in the HTML, and the paragraphs are unique in their class name
+        paragraphs = soup.find_all('div', {'class':'sidebar-grid__content article__content'})
+
+        # Rebuild the article from the paragraphs
+        full_article_text = '\n'.join([''.join(para.text) for para in paragraphs])
+
+        return full_article_text
+        
             
         
             
