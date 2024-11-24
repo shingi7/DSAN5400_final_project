@@ -111,6 +111,75 @@ class ArticleCollector():
         else:
             print("Failed to pull a valid response from the NewsAPI. Check inputs")
 
+    def _add_articles_info(self, urls, dates, descriptions, sources, titles):
+        # Add to the current list of URLs if it exists, or create a new list if not
+        if self.urls:
+            self.urls = self.urls + urls
+        else:
+            self.urls = urls
+
+        # Add to the current list of descriptions if it exists, or create a new list if not
+        if self.descriptions:
+            self.descriptions = self.descriptions + descriptions
+        else:
+            self.descriptions = descriptions
+
+        # Add to the current list of descriptions if it exists, or create a new list if not
+        if self.titles:
+            self.titles = self.titles + titles
+        else:
+            self.titles = titles
+
+        # Add to the current list of descriptions if it exists, or create a new list if not
+        if self.dates:
+            self.dates = self.dates + dates
+        else:
+            self.dates = dates
+
+        # Add to the current list of descriptions if it exists, or create a new list if not
+        if self.sources:
+            self.sources = self.sources + sources
+        else:
+            self.sources = sources
+
+    def scrape_wpost(self, path_to_html):
+        '''Pulls all article infomation from downloaded Washington Post HTML to be used for article scraping.
+           This is necessary as the NewsAPI does not correctly pull articles from WPost'''
+        
+        with open(path_to_html, 'r') as fpath:
+            html = fpath.read()
+
+        soup = BeautifulSoup(html, 'html.parser')
+
+        stories = soup.find_all('div', {'data-feature-id':'homepage/story'})
+
+        urls = [stories[n].find_all('a', {'data-pb-local-content-field':'web_headline'})[0]['href'] for n in range(len(stories))]
+        dates = [stories[n].find_all('span',{'data-testid':'timestamp'})[0].text for n in range(len(stories))]
+        descriptions = [None for n in range(len(stories))]
+        sources = ['Washington Post' for n in range(len(stories))]
+        titles = [stories[n].find_all('h3', {'data-qa':'card-title'})[0].text for n in range(len(stories))]
+
+        self._add_articles_info(urls, dates, descriptions, sources, titles)
+
+    def scrape_nyt(self, path_to_html):
+        '''Pulls all article infomation from downloaded New York Times HTML to be used for article scraping.
+           This is necessary as the NewsAPI does not correctly pull articles from NYT'''
+        
+        with open(path_to_html, 'r') as fpath:
+            html = fpath.read()
+
+        soup = BeautifulSoup(html, 'html.parser')
+
+        stories = soup.find_all('li', {'class':'css-18yolpw'})
+
+        urls = [stories[n].find_all('a', {'class':'css-8hzhxf'})[0]['href'] for n in range(len(stories))]
+        dates = [None for n in range(len(stories))]
+        descriptions = [None for n in range(len(stories))]
+        sources = ['New York Times' for n in range(len(stories))]
+        titles = [stories[n].find_all('h3', {'class':'css-1j88qqx e15t083i0'})[0].text for n in range(len(stories))]
+
+        self._add_articles_info(urls, dates, descriptions, sources, titles)
+        
     def make_article_df(self, save=True):
         '''Converts all the article information stored in the class instance and converts to a DataFrame for returning'''
         df = pd.DataFrame({
@@ -436,6 +505,31 @@ class ArticleScraper():
             print("The given URL is not connecting to an article. Double check the URL and inspect the page if necessary.")
             print(url)
             return None
+        
+    # def scrape_nyt_article(self, url):
+    #     '''scrapes article text from nytimes.com'''
+    #     # Get the HTML Soup from the url via a GET request
+    #     soup = self._make_soup(url)
+
+    #     paragraphs = soup.find_all('p', {'class':'css-at9mc1 evys1bk0'})
+
+    #     # Rebuild the article from the paragraphs
+    #     full_article_text = '\n'.join([''.join(para.text) for para in paragraphs])
+
+    #     if len(paragraphs) == 0: # We need to log in to NYT
+    #         driver = webdriver.Chrome()
+    #         driver.get(url)
+
+    #         time.sleep(100)
+
+        
+
+    #     return full_article_text
+
+
+
+
+
 
 
 
