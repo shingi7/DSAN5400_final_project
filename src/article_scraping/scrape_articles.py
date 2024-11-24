@@ -19,7 +19,7 @@ scraper_functions = {'Fox News':scraper.scrape_fox_article,
                      'Al Jazeera English':scraper.scrape_aljazeera_article,
                      'Washington Post':scraper.scrape_washingtonpost_article,
                      'BBC News':scraper.scrape_bbc_article,
-                     'Associated Press':scraper.scrape_ap_article,
+                     'AP News':scraper.scrape_ap_article,
                      }
 
 # Create storage for all our texts
@@ -53,6 +53,10 @@ for i in range(len(articles_df)):
 
 # Append the texts to the articles df
 articles_df['article_text_raw'] = texts
+
+# Remove the cnn spanish and arabic articles
+articles_df = articles_df[articles_df.url.str.contains('espanol') == False]
+articles_df = articles_df[articles_df.url.str.contains('arabic') == False]
 
 # Save the df back to machine
 articles_df.to_csv('data/articles_with_text.csv', index=False)
