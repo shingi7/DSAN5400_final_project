@@ -1,7 +1,7 @@
 import json
 import requests
 
-from article_collection import ArticleCollector, ArticleScraper
+from article_collection import ArticleCollector
 
 # Load keys
 with open('../../keys.json') as f:
@@ -13,14 +13,14 @@ POST_PASS = keys["POST_PASSWORD"]
 # Define function inputs
 keywords = ['election', 'government', 'economy', 'trump', 'kamala']
 pages = [n for n in range(1, 6)]
-domains = ['washingtonpost.com']#'apnews.com', 'politico.com', 'aljazeera.com', 'washingtonpost.com','foxnews.com',
-           #'bbc.co.uk', 'cnn.com', 'breitbart.com', 'cnn.com]
+domains = ['aljazeera.com', 'washingtonpost.com','foxnews.com',
+           'bbc.co.uk', 'cnn.com', 'breitbart.com', 'cnn.com']
 
 
 # Create the collection object
 collector = ArticleCollector(API_KEY=NEWS_API_KEY)
 
-### PULL THE MAJORITY OF ARTICLES FROM NEWSAPI ###
+# ### PULL THE MAJORITY OF ARTICLES FROM NEWSAPI ###
 
 # # Loop through the input combinations, collecting article info on each, and stopping 
 # # if no further articles are found
@@ -47,8 +47,10 @@ collector = ArticleCollector(API_KEY=NEWS_API_KEY)
 # ### FOLLOW UP WITH WASHINGTON POST ARTICLE COLLECTION ###
 # collector.scrape_wpost('data/wpost.html')
 
-### FOLLOW UP WITH NYT ARTICLE COLLECTION ###
-collector.scrape_nyt('data/nyt.html')
+### FOLLOW UP WITH AP ARTICLE COLLECTION ###
+collector.scrape_ap('data/AP.html')
+
+
 
 ### FINISH BY BUILDING AND SAVING THE DATAFRAME OF ARTICLES ###
 collector.make_article_df(save=True)

@@ -159,25 +159,28 @@ class ArticleCollector():
         sources = ['Washington Post' for n in range(len(stories))]
         titles = [stories[n].find_all('h3', {'data-qa':'card-title'})[0].text for n in range(len(stories))]
 
+        # And add the info to the class storage
         self._add_articles_info(urls, dates, descriptions, sources, titles)
 
-    def scrape_nyt(self, path_to_html):
-        '''Pulls all article infomation from downloaded New York Times HTML to be used for article scraping.
-           This is necessary as the NewsAPI does not correctly pull articles from NYT'''
+    def scrape_ap(self, path_to_html):
+        '''Pulls all article infomation from downloaded AP HTML to be used for article scraping.
+           This is necessary as the NewsAPI does not correctly pull articles from AP'''
         
-        with open(path_to_html, 'r') as fpath:
+        with open('data/AP.html', 'r') as fpath:
             html = fpath.read()
 
         soup = BeautifulSoup(html, 'html.parser')
 
-        stories = soup.find_all('li', {'class':'css-18yolpw'})
+        stories = soup.find_all('div', {'class':'PageList-items-item'})
 
-        urls = [stories[n].find_all('a', {'class':'css-8hzhxf'})[0]['href'] for n in range(len(stories))]
-        dates = [None for n in range(len(stories))]
-        descriptions = [None for n in range(len(stories))]
-        sources = ['New York Times' for n in range(len(stories))]
-        titles = [stories[n].find_all('h3', {'class':'css-1j88qqx e15t083i0'})[0].text for n in range(len(stories))]
+        # Collect all the relevant info, filtering after 5 to remove the page headers
+        urls = [stories[n].find_all('a', {'class':'Link'})[0]['href'] for n in range(len(stories))][5:]
+        dates = [None for n in range(len(stories))][5:]
+        descriptions = [None for n in range(len(stories))][5:]
+        sources = ['AP News' for n in range(len(stories))][5:]
+        titles = [stories[n].find_all('span', {'class':'PagePromoContentIcons-text'})[0].text for n in range(len(stories))][5:]
 
+        # And add the info to the class storage
         self._add_articles_info(urls, dates, descriptions, sources, titles)
         
     def make_article_df(self, save=True):
@@ -217,8 +220,9 @@ class ArticleCollector():
 class ArticleScraper():
     '''A class to scrape article text from different mainstream political news websites.'''
     
-    def __init__(self):
-        pass
+    def __init__(self, POST_NAME, POST_PASS):
+        self.post_name = POST_NAME
+        self.post_pass = POST_PASS
 
     def _make_soup(self, url):
         # Get the HTML Soup from the url via a GET request
@@ -262,6 +266,7 @@ class ArticleScraper():
         
         else:
             print("The given URL is not connecting to an article. Double check the URL and inspect the page if necessary.")
+            print(url)
             return None
 
     def scrape_CNN_article(self, url):
@@ -289,6 +294,8 @@ class ArticleScraper():
         
         else:
             print("The given URL is not connecting to an article. Double check the URL and inspect the page if necessary.")
+            print(url)
+            return None
 
     
     def scrape_washingtonpost_article(self, url, POST_NAME, POST_PASS):
@@ -311,7 +318,7 @@ class ArticleScraper():
             # Insert email username
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.ID, "username"))
-            ).send_keys(POST_NAME)
+            ).send_keys(self.post_name)
 
             # Click on next button to get to password
             WebDriverWait(driver, 10).until(
@@ -321,7 +328,7 @@ class ArticleScraper():
             # Insert password
             WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, "//*[@id='password']"))
-            ).send_keys(POST_PASS)
+            ).send_keys(self.post_pass)
 
             # Click to sign in
             WebDriverWait(driver, 10).until(
