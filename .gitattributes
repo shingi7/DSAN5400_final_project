@@ -1,0 +1,2 @@
+colbertv2.0.tar.gz filter=lfs diff=lfs merge=lfs -text
+checkpoints/colbertv2.0/pytorch_model.bin filter=lfs diff=lfs merge=lfs -text
