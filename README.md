@@ -1,6 +1,6 @@
 # news_recommendation_final_project
 
-A Pproject for creating and offering news article recommendations to broaden readers' universe of news media.
+A project for creating and offering news article recommendations to broaden readers' universe of news media. The project pulls from a variety of news sources and implements ColBERT to analyze text similarity between an input article and the collected corpus of articles. Once an article is input, the 5 most similar articles (scored by ColBERT) are returned with titles, source, and URL. These articles are also analyzed using a BERT sentiment model and are given a sentiment score 1-5 (5 being the most postiive). These article recommendations and sentiment scores are intended to be a great way to broaden a user's exposure to different outlets. Reading similar articles with a different sentiment than the input help show differing opinions on a specific topic of interest.
 
 ## Installation
 
