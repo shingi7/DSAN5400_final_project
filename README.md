@@ -13,6 +13,10 @@ To do so, copy and paste **in the terminal** the following lines:
 !wget "https://downloads.cs.stanford.edu/nlp/data/colbert/colbertv2/colbertv2.0.tar.gz"
 !mkdir -p checkpoints  # Create the 'checkpoints' directory if it doesn't exist
 !tar -xvzf colbertv2.0.tar.gz -C checkpoints
+!pip install -U pip > /dev/null 2>&1
+!pip install fsspec==2024.9.0 > /dev/null 2>&1
+!pip install -e ColBert/['faiss-gpu','torch'] > /dev/null 2>&1
+!pip install --upgrade torch torchvision torchaudtio > /dev/null 2>&1
 ```
 
 ```bash
