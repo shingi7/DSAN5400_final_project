@@ -25,7 +25,24 @@ pip install news_recommendation_final_project
 
 ## Usage
 
-- TODO
+To use this project, run the main.py file. This invokes 3 function calls. The first takes a url of an article within our corpus and will return the titles, sources, and urls to the five most similar articles within our corpus scored by ColBERT.
+From there, these articles will be passed through a text cleaning function that prepares the article text for sentiment analysis. From there, sentiment analysis will be run on the five returned articles from the first function call, scoring them from 1 (most negative) to 5 (most positive).
+
+**NOTE This main.py file will not be able to complete its run unless you are running it on a machine with GPU processing available. If this is not the case, we recommend testing the functionality from the colab notebook here ([ColBERT implementation](DSAN_5400_Final_News_Recommender_Training.ipynb)).**
+![alt text](colbert_results.png)
+Picture above is an example of what is returned when our text similarity function is implemented correctly. If you want to try for yourself, you must enter an article contained within our corpus. Here are a few links to articles within our corpus if you are interested in trying for yourself:(https://www.aljazeera.com/program/between-us/2024/11/4/trumps-road-to-the-election
+
+https://www.aljazeera.com/program/between-us/2024/11/4/harriss-road-to-the-election
+
+https://www.aljazeera.com/news/2024/11/12/moldova-formally-protests-alleged-russian-election-meddling
+
+https://www.aljazeera.com/news/2024/11/12/opposition-secures-landslide-victory-in-mauritius-election
+
+https://www.aljazeera.com/program/now-you-know/2024/11/4/will-abortion-access-decide-the-us-election
+
+https://www.aljazeera.com/news/2024/10/26/japans-parliamentary-election-why-it-matters
+
+https://www.aljazeera.com/program/the-stream/2024/11/1/what-issues-are-americans-facing-this-election)
 
 ## Contributing
 
