@@ -4,6 +4,17 @@ A project for creating and offering news article recommendations to broaden read
 
 ## Installation
 
+**NOTE: BEFORE RUNNING, ENSURE THAT ALL COLBERT DATA AND CHECKPOINTS ARE SUCCESFULLY INSTALLED**
+
+To do so, copy and paste **in the terminal** the following lines:
+
+```
+!git -C ColBERT/ pull || git clone https://github.com/stanford-futuredata/ColBERT.git > /dev/null 2>&1
+!wget "https://downloads.cs.stanford.edu/nlp/data/colbert/colbertv2/colbertv2.0.tar.gz"
+!mkdir -p checkpoints  # Create the 'checkpoints' directory if it doesn't exist
+!tar -xvzf colbertv2.0.tar.gz -C checkpoints
+```
+
 ```bash
 pip install news_recommendation_final_project
 ```
