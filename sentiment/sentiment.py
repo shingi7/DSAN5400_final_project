@@ -57,16 +57,14 @@ def process_indices(df, clean_texts, indices, sentiment_pipeline):
         print(f"Source: {source}")
         print(f"Score: {label}\n")
 
-# Example usage (integrate into your project as needed)
+# Example usage
 if __name__ == "__main__":
-    # Load DataFrame (example file path)
+    # Load DataFrame
     df = pd.read_csv("src/article_scraping/data/articles_with_text.csv")
 
-    # Pre-clean texts
-    clean_texts = df['text'].apply(clean_text)
+    clean_texts = df['article_text_raw'].apply(clean_text)
 
     # Sample indices for testing
-    similar_indices = [0, 1, 2]  # Replace with actual indices in your project
+    similar_indices = [0, 1, 2] 
 
-    # Process and display sentiment results
     process_indices(df, clean_texts, similar_indices, pipe2)
