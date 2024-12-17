@@ -16,24 +16,8 @@ try:
 except ImportError:
     print("transformers library not found. Installing it now...")
     subprocess.check_call([sys.executable, "-m", "pip", "install", "transformers"])
-    from transformers import pipeline
+    from transformers import pipeline   
 
-# Sentiment analysis pipeline
-pipe2 = pipeline("text-classification", model="nlptown/bert-base-multilingual-uncased-sentiment", truncation=True)     
-
-# SET UP THE COLBERT SEARCHER
-
-# To create the searcher using its relative name (i.e., not a full path), set
-# experiment=value_used_for_indexing in the RunConfig.
-with Run().context(RunConfig(experiment='DSAN5400')):
-    searcher = Searcher(index=index_name, collection=articles)
-
-
-# If you want to customize the search latency--quality tradeoff, you can also supply a
-# config=ColBERTConfig(ncells=.., centroid_score_threshold=.., ndocs=..) argument.
-# The default settings with k <= 10 (1, 0.5, 256) gives the fastest search,
-# but you can gain more extensive search by setting larger values of k or
-# manually specifying more conservative ColBERTConfig settings (e.g. (4, 0.4, 4096)).
 
 # SET UP FUNCTION FOR PULLING THE MOST SIMILAR ARTICLES
 # Get the index from URL
@@ -77,7 +61,7 @@ def pull_similar_articles(user_url):
                 print(f"Title: {title}")
                 print(f"URL: {url}")
                 print(f"Passage ID: {passage_id}")
-                indices.append(passage_ida)
+                indices.append(passage_id)
                 print(f"\n")
             else:
                 print(f"Warning: Passage ID {passage_id} is out of range for the collection.")
@@ -103,10 +87,7 @@ def clean_text(text, lowercase=True, remove_punctuation=True):
         text = text.lower()
     if remove_punctuation:
         text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
-    return text
-
-# Sentiment analysis pipeline
-pipe2 = pipeline("text-classification", model="nlptown/bert-base-multilingual-uncased-sentiment", truncation=True)     
+    return text   
 
 # Function to process specific indices
 def process_indices(df, clean_texts, indices, sentiment_pipeline):
@@ -134,13 +115,19 @@ def process_indices(df, clean_texts, indices, sentiment_pipeline):
         print(f"Score: {label}\n")
 
 if __name__ == "__main__":
+
+    # Define the args
     parser = argparse.ArgumentParser(description="Similiar Article Matching with Sentiment Scores Program")
     parser.add_argument("-u", "--url", type=str, default="https://www.aljazeera.com/program/the-stream/2024/11/1/what-issues-are-americans-facing-this-election", help="url to article (default is an Al-Jazeera article)")
+    
+    # Parse the args
+    args = parser.parse_args()
+
 
     # Read in all the articles
-    article_df = pd.read_csv('articles_with_text.csv')
+    article_df = pd.read_csv('src/article_scraping/data/articles_with_text.csv')
     article_df['doc_id'] = range(len(article_df))
-    clean_texts = df['article_text_raw'].apply(clean_text)
+    clean_texts = article_df['article_text_raw'].apply(clean_text)
 
     articles_subset = article_df[['doc_id', 'article_text_raw', 'url', 'titles']]
     articles = articles_subset['article_text_raw'].tolist()
@@ -149,6 +136,22 @@ if __name__ == "__main__":
     # Define the inputs for the trained model, that are also used in file naming
     nbits = 2   # encode each dimension with 2 bits
     index_name = f'dsan5400_project_nbits={nbits}'
+
+    # SET UP THE COLBERT SEARCHER
+
+    # To create the searcher using its relative name (i.e., not a full path), set
+    # experiment=value_used_for_indexing in the RunConfig.
+    with Run().context(RunConfig(experiment='DSAN5400')):
+        searcher = Searcher(index=index_name, collection=articles)
+
+    # If you want to customize the search latency--quality tradeoff, you can also supply a
+    # config=ColBERTConfig(ncells=.., centroid_score_threshold=.., ndocs=..) argument.
+    # The default settings with k <= 10 (1, 0.5, 256) gives the fastest search,
+    # but you can gain more extensive search by setting larger values of k or
+    # manually specifying more conservative ColBERTConfig settings (e.g. (4, 0.4, 4096)).
+
+    # Sentiment analysis pipeline
+    pipe2 = pipeline("text-classification", model="nlptown/bert-base-multilingual-uncased-sentiment", truncation=True)      
 
     similar_indices = pull_similar_articles(args.url)
     process_indices(article_df, clean_texts, similar_indices, pipe2)
