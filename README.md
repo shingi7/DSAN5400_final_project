@@ -1,4 +1,5 @@
 # news_recommendation_final_project
+By: Nadav Gerner, Dominic Vogel, Jared Zirkes, Shingai Nindi
 
 A project for creating and offering news article recommendations to broaden readers' universe of news media. The project pulls from a variety of news sources and implements ColBERT to analyze text similarity between an input article and the collected corpus of articles. Once an article is input, the 5 most similar articles (scored by ColBERT) are returned with titles, source, and URL. These articles are also analyzed using a BERT sentiment model and are given a sentiment score 1-5 (5 being the most postiive). These article recommendations and sentiment scores are intended to be a great way to broaden a user's exposure to different outlets. Reading similar articles with a different sentiment than the input help show differing opinions on a specific topic of interest.
 
@@ -29,6 +30,9 @@ To use this project, run the main.py file. This invokes 3 function calls. The fi
 From there, these articles will be passed through a text cleaning function that prepares the article text for sentiment analysis. From there, sentiment analysis will be run on the five returned articles from the first function call, scoring them from 1 (most negative) to 5 (most positive).
 
 **NOTE This main.py file will not be able to complete its run unless you are running it on a machine with GPU processing available. If this is not the case, we recommend testing the functionality from the colab notebook here ([ColBERT implementation](DSAN_5400_Final_News_Recommender_Training.ipynb)).**
+
+**NOTE Even if you have GPU processing available, you will still need to run the ([ColBERT implementation](DSAN_5400_Final_News_Recommender_Training.ipynb)) notebook up to the following chunk ![alt text](required_colab.png). This is because it creates an index with the trained model. Unfortunately, this model training was not able to be run locally on any of our laptops so we used colab for the entire process. If this is run, the proper index will be created locally, allowing for main.py to run.**
+
 ![alt text](colbert_results.png)
 Picture above is an example of what is returned when our text similarity function is implemented correctly. If you want to try for yourself, you must enter an article contained within our corpus. Here are a few links to articles within our corpus if you are interested in trying for yourself:(https://www.aljazeera.com/program/between-us/2024/11/4/trumps-road-to-the-election
 
