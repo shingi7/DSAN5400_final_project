@@ -11,6 +11,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 class ArticleCollector():
+    '''Function to call NewsAPI and collect the articles for a given set of API inputs'''
     def __init__(self, API_KEY, urls=None, titles=None, descriptions=None,
                  dates=None, sources=None):
         
@@ -112,6 +113,7 @@ class ArticleCollector():
             print("Failed to pull a valid response from the NewsAPI. Check inputs")
 
     def _add_articles_info(self, urls, dates, descriptions, sources, titles):
+        '''Function to update the instance with article information from a previous/current API pull'''
         # Add to the current list of URLs if it exists, or create a new list if not
         if self.urls:
             self.urls = self.urls + urls
@@ -141,26 +143,6 @@ class ArticleCollector():
             self.sources = self.sources + sources
         else:
             self.sources = sources
-
-    def scrape_wpost(self, path_to_html):
-        '''Pulls all article infomation from downloaded Washington Post HTML to be used for article scraping.
-           This is necessary as the NewsAPI does not correctly pull articles from WPost'''
-        
-        with open(path_to_html, 'r') as fpath:
-            html = fpath.read()
-
-        soup = BeautifulSoup(html, 'html.parser')
-
-        stories = soup.find_all('div', {'data-feature-id':'homepage/story'})
-
-        urls = [stories[n].find_all('a', {'data-pb-local-content-field':'web_headline'})[0]['href'] for n in range(len(stories))]
-        dates = [stories[n].find_all('span',{'data-testid':'timestamp'})[0].text for n in range(len(stories))]
-        descriptions = [None for n in range(len(stories))]
-        sources = ['Washington Post' for n in range(len(stories))]
-        titles = [stories[n].find_all('h3', {'data-qa':'card-title'})[0].text for n in range(len(stories))]
-
-        # And add the info to the class storage
-        self._add_articles_info(urls, dates, descriptions, sources, titles)
 
     def scrape_ap(self, path_to_html):
         '''Pulls all article infomation from downloaded AP HTML to be used for article scraping.
@@ -220,9 +202,8 @@ class ArticleCollector():
 class ArticleScraper():
     '''A class to scrape article text from different mainstream political news websites.'''
     
-    def __init__(self, POST_NAME, POST_PASS):
-        self.post_name = POST_NAME
-        self.post_pass = POST_PASS
+    def __init__(self):
+        pass
 
     def _make_soup(self, url):
         # Get the HTML Soup from the url via a GET request
@@ -297,66 +278,6 @@ class ArticleScraper():
             print(url)
             return None
 
-    
-    def scrape_washingtonpost_article(self, url, POST_NAME, POST_PASS):
-        '''Scrapes article text from Washingtonpost.com using Selenium to log in'''
-        try: # Fails if login is required
-            # Get the HTML Soup from the url via a GET request, including a timeout
-            response = requests.get(url, timeout=3)
-            html_content = response.text
-
-        except requests.exceptions.Timeout:
-            # We need to log in to Washington Post, so we provide our cookies
-            driver = webdriver.Chrome()
-            driver.get(url)
-            
-            # Click on the sign in button
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//*[@data-qa='sc-account-button']"))
-            ).click()
-
-            # Insert email username
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, "username"))
-            ).send_keys(self.post_name)
-
-            # Click on next button to get to password
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//*[@data-test-id='sign-in-btn']"))
-            ).click()
-
-            # Insert password
-            WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.XPATH, "//*[@id='password']"))
-            ).send_keys(self.post_pass)
-
-            # Click to sign in
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//*[@data-test-id='sign-in-btn']"))
-            ).click()
-            
-            time.sleep(5)
-            html_content = driver.page_source
-
-        soup = BeautifulSoup(html_content, 'html.parser')
-
-        # Filter down to just the article body
-        article_body = soup.find('div', {'class':'meteredContent grid-center'})
-
-        if article_body:
-            # Segment by paragraph
-            paragraphs = article_body.find_all('p', {'data-el':'text'})
-
-            # Rebuild the article from the paragraphs
-            full_article_text = '\n'.join([' '.join(para.text.split()) for para in paragraphs])
-
-            return full_article_text
-        
-        else:
-            print("The given URL is not connecting to an article. Double check the URL and inspect the page if necessary.")
-            print(url)
-            return None
-
     def scrape_breitbart(self, url):
         '''Scrapes article text from breitbart.com'''
         soup = self._make_soup(url)
@@ -388,45 +309,6 @@ class ArticleScraper():
         if article_body:
             # Segment by paragraph
             paragraphs = article_body.find_all('p')
-
-            # Rebuild the article from the paragraphs
-            full_article_text = '\n'.join([''.join(para.text) for para in paragraphs])
-
-            return full_article_text
-        
-        else:
-            print("The given URL is not connecting to an article. Double check the URL and inspect the page if necessary.")
-            print(url)
-            return None
-        
-    def scrape_reuters_article(self, url):
-        '''REUTERS KEEPS THROWING CAPCHA TESTS AT SELENIUM AND IS UNHAPPY WITH SCRAPING, MIGHT NOT BE ABLE TO SCRAPE WITHOUT
-           MORE COMPLICATED MEASURES'''
-        
-        # Reuters loads with javascript, so we use selenium to scrape 
-        driver = webdriver.Chrome()
-        driver.get(url)
-
-        # Wait for the page to load
-        time.sleep(3)
-        # WebDriverWait(driver, 10).until(
-        #         EC.presence_of_element_located((By.XPATH, "//*[@data-testid='ArticleBody']"))
-        #     )
-        
-        # Collect the HTML
-        html_content = driver.page_source
-
-        # And convert to soup as usual
-        soup = BeautifulSoup(html_content, 'html.parser')
-
-
-        # Filter down to just the article body
-        article_body = soup.find('div', {'data-testid':'ArticleBody'})
-        print(soup)
-
-        if article_body:
-            # Segment by paragraph
-            paragraphs = article_body.find_all('div', {'data-testid':lambda x: 'paragraph-' in x})
 
             # Rebuild the article from the paragraphs
             full_article_text = '\n'.join([''.join(para.text) for para in paragraphs])
@@ -513,25 +395,6 @@ class ArticleScraper():
             print(url)
             return None
         
-    # def scrape_nyt_article(self, url):
-    #     '''scrapes article text from nytimes.com'''
-    #     # Get the HTML Soup from the url via a GET request
-    #     soup = self._make_soup(url)
-
-    #     paragraphs = soup.find_all('p', {'class':'css-at9mc1 evys1bk0'})
-
-    #     # Rebuild the article from the paragraphs
-    #     full_article_text = '\n'.join([''.join(para.text) for para in paragraphs])
-
-    #     if len(paragraphs) == 0: # We need to log in to NYT
-    #         driver = webdriver.Chrome()
-    #         driver.get(url)
-
-    #         time.sleep(100)
-
-        
-
-    #     return full_article_text
 
 
 
