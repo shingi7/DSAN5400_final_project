@@ -1,6 +1,7 @@
 keys.json
 src/article_scraping/data
 ColBERT/
+README_files
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
