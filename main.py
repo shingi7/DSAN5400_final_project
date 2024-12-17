@@ -6,19 +6,20 @@ from colbert.data import Queries, Collection
 
 import pandas as pd
 import logging
+import re
+import subprocess
+import sys
+import argparse
 
-# Read in all the articles
-article_df = pd.read_csv('articles_with_text.csv')
-article_df['doc_id'] = range(len(article_df))
+try:
+    from transformers import pipeline
+except ImportError:
+    print("transformers library not found. Installing it now...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "transformers"])
+    from transformers import pipeline
 
-articles_subset = article_df[['doc_id', 'article_text_raw', 'url', 'titles']]
-articles = articles_subset['article_text_raw'].tolist()
-metadata = articles_subset[['doc_id', 'url', 'titles']].set_index('doc_id').to_dict(orient='index')
-
-# Define the inputs for the trained model, that are also used in file naming
-nbits = 2   # encode each dimension with 2 bits
-index_name = f'dsan5400_project_nbits={nbits}'
-
+# Sentiment analysis pipeline
+pipe2 = pipeline("text-classification", model="nlptown/bert-base-multilingual-uncased-sentiment", truncation=True)     
 
 # SET UP THE COLBERT SEARCHER
 
@@ -56,7 +57,7 @@ def pull_similar_articles(user_url):
 
         # Perform the search to find the top-k passages
         results = searcher.search(query, k=6)
-
+        indices = []
         # Print out the top-5 retrieved passages excluding the first one (result 1)
         for i, (passage_id, passage_rank, passage_score) in enumerate(zip(*results)):
             if i == 0:
@@ -76,8 +77,80 @@ def pull_similar_articles(user_url):
                 print(f"Title: {title}")
                 print(f"URL: {url}")
                 print(f"Passage ID: {passage_id}")
+                indices.append(passage_ida)
                 print(f"\n")
             else:
                 print(f"Warning: Passage ID {passage_id} is out of range for the collection.")
+        
+        return indices
     else:
         print("No article found for the given URL.")
+
+# Clean text function
+def clean_text(text, lowercase=True, remove_punctuation=True):
+    """
+    Cleans the given text by optionally converting to lowercase and removing punctuation.
+    
+    Args:
+        text (str): Input text to be cleaned.
+        lowercase (bool): Whether to convert text to lowercase.
+        remove_punctuation (bool): Whether to remove punctuation.
+    
+    Returns:
+        str: Cleaned text.
+    """
+    if lowercase:
+        text = text.lower()
+    if remove_punctuation:
+        text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
+    return text
+
+# Sentiment analysis pipeline
+pipe2 = pipeline("text-classification", model="nlptown/bert-base-multilingual-uncased-sentiment", truncation=True)     
+
+# Function to process specific indices
+def process_indices(df, clean_texts, indices, sentiment_pipeline):
+    """
+    Processes specific indices from a dataframe to output sentiment scores.
+
+    Args:
+        df: DataFrame containing 'titles' and 'source'.
+        clean_texts: Pre-cleaned text data.
+        indices: List of row indices to process.
+        sentiment_pipeline (Pipeline): Hugging Face pipeline for sentiment analysis.
+
+    Returns:
+        None: Prints results directly.
+    """
+    for index in indices:
+        title = df.iloc[index]['titles']
+        source = df.iloc[index]['source']
+        text = clean_texts.iloc[index]
+        sentiment = sentiment_pipeline(text)[0]
+        label = sentiment['label']
+
+        print(f"Title: {title}")
+        print(f"Source: {source}")
+        print(f"Score: {label}\n")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Similiar Article Matching with Sentiment Scores Program")
+    parser.add_argument("-u", "--url", type=str, default="https://www.aljazeera.com/program/the-stream/2024/11/1/what-issues-are-americans-facing-this-election", help="url to article (default is an Al-Jazeera article)")
+
+    # Read in all the articles
+    article_df = pd.read_csv('articles_with_text.csv')
+    article_df['doc_id'] = range(len(article_df))
+    clean_texts = df['article_text_raw'].apply(clean_text)
+
+    articles_subset = article_df[['doc_id', 'article_text_raw', 'url', 'titles']]
+    articles = articles_subset['article_text_raw'].tolist()
+    metadata = articles_subset[['doc_id', 'url', 'titles']].set_index('doc_id').to_dict(orient='index')
+
+    # Define the inputs for the trained model, that are also used in file naming
+    nbits = 2   # encode each dimension with 2 bits
+    index_name = f'dsan5400_project_nbits={nbits}'
+
+    similar_indices = pull_similar_articles(args.url)
+    process_indices(article_df, clean_texts, similar_indices, pipe2)
+
+
